@@ -188,7 +188,7 @@ function renderModal(){ const m=$('#modal');
    ${c.select?`<button class="primary" data-act="doSel" ${c.sel>=0?'':'disabled'}>${c.sel>=0?'Fazer esta ação':'Escolhe uma ação'}</button> `:''}
    <button class="ghost" data-act="cancelChoice">${c.cancellable?'Cancelar':'Voltar atrás (desfaz esta ação)'}</button>`; }
  else if(UI.modal) html=UI.modal;
- else if(UI.sheet&&S) html=sheetHTML(UI.sheet)+'<button class="primary" data-act="closeSheet">Fechar</button>';
+ else if(UI.sheet&&S) html=sheetHTML(UI.sheet)+'<button class="primary" data-act="closeSheet">Fechar</button>'+(S.over?' <button data-act="showEnd">Voltar aos resultados</button>':'');
  const pill=$('#minpill');
  if(html&&minable&&UI.min){ m.classList.remove('show'); m.innerHTML=''; pill.hidden=false; return; }
  pill.hidden=true;
@@ -196,7 +196,7 @@ function renderModal(){ const m=$('#modal');
 function pinfo(){ const pid=curP(); if(pid<0) return ''; const p=S.players[pid]; return `${tok(p)} ${esc(p.name)}: 🌽${p.corn} 🪵${p.wood} 🪨${p.stone} 🪙${p.gold} 💀${p.skull}`; }
 function showModal(html){ UI.modal=html; UI.sheet=null; UI.min=false; renderModal(); }
 function closeModal(){ UI.modal=null; renderModal(); }
-function openSheet(sh){ if(UI.choice||UI.modal) return; UI.sheet=sh; renderModal(); }
+function openSheet(sh){ if(UI.choice) return; if(UI.modal){ if(!(S&&S.over)) return; UI.modal=null; } UI.sheet=sh; renderModal(); }
 
 function showWealth(pid){ const p=S.players[pid]; UI.wsel=[];
  const draw=()=>{ showModal(`<h3>${esc(p.name)}: escolhe 2 peças de riqueza inicial</h3>
