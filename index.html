@@ -79,6 +79,7 @@ svg .pulse{animation:pulse 1.4s infinite}
 .seat{display:flex;gap:6px;align-items:center;margin:8px 0}.seat input{flex:1;min-width:0;padding:7px;border-radius:8px;border:1px solid #8c7a58;background:#fffaf0;color:var(--ink)}
 .seg.on{background:var(--accent);color:#fff;border-color:#8a3d1a}
 .help li{margin:4px 0}
+.free{display:inline-block;margin-left:6px;background:#2e8b57;color:#fff;border-radius:4px;padding:0 6px;font-size:11px}
 .fside{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:calc(8px + env(safe-area-inset-right,0px));z-index:6;width:42px;height:42px;padding:0;font-size:20px;background:rgba(255,250,240,.92)}
 .fbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:6;display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:calc(100% - 24px);background:rgba(255,250,240,.95);color:var(--ink);border-radius:12px;padding:4px 8px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .fbtns{display:inline-flex;gap:6px;flex-wrap:wrap}.fbtns button{padding:3px 9px;font-size:12px}
@@ -447,9 +448,9 @@ function pickGen(pid,wid){ return s=>{ const w=s.workers.find(x=>x.id===wid); if
  [...cands.entries()].sort((x,y)=>x[0]-y[0]).forEach(([a,c])=>{
   if(p.corn<c) return; const t=clone(s); removeW(t,wid); t.players[pid].corn-=c; if(!act(pid,g,a,DONE)(t).length) return;
   const lab=`${gi.name} ${a}: ${actLabel(g,a)}${c?` (paga ${c}🌽 para recuar)`:''}${g==='chi'&&a===q+1&&q<10?' (Teologia)':''}`;
-  out.push(N(lab, s=>{ removeW(s,wid); s.players[pid].corn-=c; s.turn.picks++; return act(pid,g,a,DONE)(s); }));
+  out.push(N(lab, s=>{ removeW(s,wid); s.players[pid].corn-=c; s.turn.picks++; return act(pid,g,a,DONE)(s); },{pa:a,pc:c,here:a===q&&c===0}));
  });
- out.push(N('Recolher sem fazer ação', s=>{ removeW(s,wid); s.turn.picks++; return []; }));
+ out.push(N('Recolher sem fazer ação', s=>{ removeW(s,wid); s.turn.picks++; return []; },{none:1}));
  return out; }; }
 
 /* ---------- turnos ---------- */
@@ -832,7 +833,8 @@ function renderModal(){ const m=$('#modal');
   const plain=c.nodes.map((n,i)=>i).filter(i=>!cardIdx.includes(i));
   let note=''; if(c.nodes.some(n=>n.noArch)) note='<p class="hint">Segundo edifício de Tikal 4: não recebe o bónus de arquitetura (só um dos dois edifícios o recebe).</p>';
   else if(c.nodes.some(n=>n.arch)) note='<p class="hint">O bónus de arquitetura aplica-se a este edifício.</p>';
-  html=`<h3>${esc(c.title)}</h3><div class="pinfo">${pinfo()}</div>${note}${cardIdx.length?`<div class="hcards choosecards">${cardIdx.map(i=>choiceCard(c.nodes[i],i)).join('')}</div>`:''}<div class="opts">${plain.map(i=>`<button class="opt" data-act="choose" data-i="${i}">${rich(c.nodes[i].label)}</button>`).join('')}</div>
+  html=`<h3>${esc(c.title)}</h3><div class="pinfo">${pinfo()}</div>${note}${cardIdx.length?`<div class="hcards choosecards">${cardIdx.map(i=>choiceCard(c.nodes[i],i)).join('')}</div>`:''}${c.select?'<p class="hint">Já está escolhida a ação do espaço onde está o trabalhador (sem custo). Podes tocar noutra antes de confirmar.</p>':''}<div class="opts">${plain.map(i=>`<button class="opt ${c.select&&c.sel===i?'sel':''}" data-act="choose" data-i="${i}">${c.select&&c.sel===i?'✔ ':''}${rich(c.nodes[i].label)}${c.select&&c.nodes[i].here?' <span class="free">sem custo</span>':''}</button>`).join('')}</div>
+   ${c.select?`<button class="primary" data-act="doSel" ${c.sel>=0?'':'disabled'}>${c.sel>=0?'Fazer esta ação':'Escolhe uma ação'}</button> `:''}
    <button class="ghost" data-act="cancelChoice">${c.cancellable?'Cancelar':'Voltar atrás (desfaz esta ação)'}</button>`; }
  else if(UI.modal) html=UI.modal;
  else if(UI.sheet&&S) html=sheetHTML(UI.sheet)+'<button class="primary" data-act="closeSheet">Fechar</button>';
@@ -934,7 +936,7 @@ function gearSVG(g){ const G=GEO[g], gi=E.GI[g], st=360/G.teeth, pid=curP();
  for(let k=0;k<=gi.max;k++){ const a=G.a0+k*st; const free=k>=gi.free;
   const isChi=g==='chi'&&k>=1&&k<=9;
   const fill=(g==='pal'&&k===1)?'#4aa3d8':GCOL[g]; const op=k===0?0.35:(free?0.7:0.95);
-  h+=`<path d="${seg(G.r1,G.r2,a-st/2+1,a+st/2-1)}" fill="${fill}" fill-opacity="${op}" stroke="#1d1a14" stroke-opacity=".4" data-act="gear" data-g="${g}" class="segp" data-tip="${esc(tipGear(g,k))}"/>`;
+  h+=`<path d="${seg(G.r1,G.r2,a-st/2+1,a+st/2-1)}" fill="${fill}" fill-opacity="${op}" stroke="#1d1a14" stroke-opacity=".4" data-act="gear" data-g="${g}" data-k="${k}" class="segp" data-tip="${esc(tipGear(g,k))}"/>`;
   const [tx,ty]=P(0,0,(G.r1+G.r2)/2+4,a);
   let lab; if(g==='chi') lab=k===0?['—']:k>=10?['✱','livre']:[`${E.CHI[k].vp}★`,E.CHI[k].r?'+▣':'']; else lab=SHORT[g][k];
   if(lab[1]==='') lab=[lab[0]];
@@ -1107,6 +1109,12 @@ async function goFull(){ const el=document.documentElement;
  try{ if(!(document.fullscreenElement||document.webkitFullscreenElement)){ const f=el.requestFullscreen||el.webkitRequestFullscreen; if(!f) throw new Error('x'); await f.call(el,{navigationUI:'hide'}); try{ await screen.orientation.lock('landscape'); }catch(e){} }
   else { const x=document.exitFullscreen||document.webkitExitFullscreen; await x.call(document); } }
  catch(e){ showModal('<h3>Ecrã inteiro indisponível aqui</h3><p>Este browser (ou a moldura onde o jogo está aberto) não deixa ocupar o ecrã inteiro. Abre o jogo pelo teu endereço próprio (GitHub Pages) e usa “Adicionar ao ecrã principal”: assim abre sempre em ecrã inteiro e na horizontal. Também podes esconder o painel lateral com ⇥.</p><button class="primary" data-act="closeModal">OK</button>'); } }
+function openPick(wid){ const pid=curP(); const nodes=E.pickGen(pid,wid)(S);
+ let def=nodes.findIndex(n=>n.here); if(def<0&&nodes.length===1) def=0;
+ if(def>0){ const [d]=nodes.splice(def,1); nodes.unshift(d); def=0; }
+ const w=S.workers.find(x=>x.id===wid);
+ openChoice(`Recolher de ${E.GI[w.gear].name} ${w.pos}`,nodes,true,()=>{ S.turn.mode='pick'; S.turn.acted=true; render(); });
+ if(UI.choice){ UI.choice.select=true; UI.choice.sel=def; renderModal(); } }
 /* ---------- renderização ---------- */
 function render(){ const app=$('#app');
  if(!S){ app.className='setupmode'; app.innerHTML=setupHTML(); return; }
@@ -1159,7 +1167,7 @@ document.addEventListener('click',e=>{ const t=e.target.closest('[data-act]'); i
   case 'menuYes': if(UI.snap&&!S.over) S=UI.snap; save(); S=null; UI.choice=null; UI.sheet=null; UI.modal=null; renderModal(); render(); break;
   case 'sheet': openSheet({t:attr(t,'t')}); break;
   case 'psheet': UI.sheet=null; openSheet({t:'player',p:+attr(t,'p')}); break;
-  case 'gear': openSheet({t:'gear',g:attr(t,'g')}); break;
+  case 'gear': { const g=attr(t,'g'), k=attr(t,'k'); if(k!=null&&canPickNow()){ const w=S.workers.find(x=>x.owner===pid&&x.gear===g&&x.pos===+k); if(w){ openPick(w.id); break; } } openSheet({t:'gear',g}); break; }
   case 'temples': openSheet({t:'temples'}); break;
   case 'tech': openSheet({t:'tech'}); break;
   case 'score': openSheet({t:'score'}); break;
@@ -1180,13 +1188,14 @@ document.addEventListener('click',e=>{ const t=e.target.closest('[data-act]'); i
   case 'endturn': finishTurn(); break;
   case 'restart': S=E.clone(UI.snap); UI.pending=[]; render(); break;
   case 'beg': openChoice('Mendigar milho',[E.begNode(pid)],true,()=>render()); break;
-  case 'pick': if(!canPickNow()) return; openChoice('Recolher trabalhador: escolhe a ação',E.pickGen(pid,+attr(t,'w'))(S),true,()=>{ S.turn.mode='pick'; S.turn.acted=true; render(); }); break;
+  case 'pick': if(!canPickNow()) return; openPick(+attr(t,'w')); break;
   case 'fullscreen': goFull(); break;
   case 'hideSide': UI.sideHidden=true; try{localStorage.setItem('cs_side','0');}catch(e){} render(); break;
   case 'showSide': UI.sideHidden=false; try{localStorage.setItem('cs_side','1');}catch(e){} render(); break;
   case 'minModal': UI.min=true; renderModal(); render(); break;
   case 'restoreModal': UI.min=false; renderModal(); render(); break;
-  case 'choose': runChoice(+attr(t,'i')); break;
+  case 'choose': if(UI.choice&&UI.choice.select){ UI.choice.sel=+attr(t,'i'); renderModal(); break; } runChoice(+attr(t,'i')); break;
+  case 'doSel': if(UI.choice&&UI.choice.sel>=0){ const i=UI.choice.sel; UI.choice.select=false; runChoice(i); } break;
   case 'cancelChoice': if(UI.choice&&UI.choice.snap) S=UI.choice.snap; UI.choice=null; renderModal(); render(); break;
   case 'wtile': { const ti=+attr(t,'t'); const i=UI.wsel.indexOf(ti); if(i>=0) UI.wsel.splice(i,1); else if(UI.wsel.length<2) UI.wsel.push(ti); UI.wdraw(); break; }
   case 'wconfirm': E.chooseWealth(S,UI.wpid,UI.wsel); closeModal(); save(); flow(); break;
