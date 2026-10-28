@@ -578,6 +578,11 @@ document.addEventListener('click',e=>{ if(TIP.long){ TIP.long=false; e.preventDe
 window.addEventListener('scroll',hideTip,true);
 function finishTurn(){ E.endTurn(S); UI.snap=null; UI.snapKey=null; UI.pending=[]; save(); flow(); }
 try{ UI.sideHidden=localStorage.getItem('cs_side')==='0'; }catch(e){}
+// Como app instalada: no primeiro toque passa a ecrã inteiro (o browser só o permite depois de um toque)
+try{ if(matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: minimal-ui)').matches){
+ const once=()=>{ document.removeEventListener('pointerup',once,true); const el=document.documentElement; const f=el.requestFullscreen||el.webkitRequestFullscreen;
+  if(f&&!document.fullscreenElement){ Promise.resolve(f.call(el,{navigationUI:'hide'})).then(()=>{ try{ screen.orientation.lock('landscape').catch(()=>{}); }catch(e){} }).catch(()=>{}); } };
+ document.addEventListener('pointerup',once,true); } }catch(e){}
 try{ if(screen.orientation&&screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); }catch(e){}
 render();
 })();
