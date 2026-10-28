@@ -22,7 +22,7 @@ const GEO={
  uxm:{cx:820,cy:830,teeth:10,rg:78,r1:92,r2:150,a0:-74.2},
  chi:{cx:240,cy:740,teeth:13,rg:100,r1:114,r2:182,a0:4.6}
 };
-const GCOL={pal:'#86b84f',yax:'#a89d92',tik:'#cc6c3b',uxm:'#dcb437',chi:'#5a96c8'};
+
 const TCOL=['#8b5a33','#c99a1c','#4b8a3c'];
 const SHORT={
  pal:[['—'],['🐟','3🌽'],['4🌽'],['5🌽','2🪵'],['7🌽','3🪵'],['9🌽','4🪵'],['✱','livre'],['✱','livre']],
@@ -91,7 +91,7 @@ function tipDay(d){ const f=E.FOOD[d]; if(f) return `Dia ${d}: dia de comida. Ca
 let setup={n:2,seats:[{name:'',bot:false},{name:'',bot:true},{name:'',bot:true},{name:'',bot:true}]};
 function setupHTML(){
  const saved=loadSaved();
- let h=`<div class="setupwrap"><div class="setup"><h1>Calendário Sagrado</h1><p class="sub">Jogo de engrenagens e trabalhadores, para 2 a 4 jogadores. Joga-se na horizontal.</p>`;
+ let h=`<div class="setupwrap"><div class="setup"><div class="crest"><svg viewBox="-60 -60 120 120" aria-hidden="true"><g>${Array.from({length:13},(_,i)=>`<rect x="-7" y="-58" width="14" height="16" rx="4" fill="#cfc6b2" stroke="#7d725e" stroke-width="2" transform="rotate(${(i*360/13).toFixed(1)})"/>`).join('')}</g><circle r="46" fill="#cfc6b2" stroke="#7d725e" stroke-width="2.5"/><circle r="34" fill="#16191b" stroke="#d6ab4f" stroke-width="3"/>${Array.from({length:8},(_,i)=>`<line x1="0" y1="-16" x2="0" y2="-26" stroke="#f2d68c" stroke-width="3.5" stroke-linecap="round" transform="rotate(${i*45})"/>`).join('')}<circle r="12" fill="#f2d68c"/></svg><div><h1>Calendário Sagrado</h1><p class="sub">Jogo de engrenagens e trabalhadores, para 2 a 4 jogadores. Joga-se na horizontal.</p></div></div>`;
  if(saved && !saved.over) h+=`<button class="big primary" data-act="resume">Continuar jogo guardado (dia ${saved.day} de 26)</button>`;
  h+=`<h2>Novo jogo</h2><div class="row">Jogadores: ${[2,3,4].map(n=>`<button class="seg ${setup.n===n?'on':''}" data-act="setn" data-n="${n}">${n}</button>`).join('')}</div>`;
  for(let i=0;i<setup.n;i++){ const st=setup.seats[i];
@@ -279,140 +279,172 @@ function techSheet(){ let h='<h3>Tecnologias</h3><table class="techs"><tr><th></
  return h+'</table><p class="hint">Custo: nível 1 = 1 recurso, nível 2 = 2, nível 3 = 3 (madeira, pedra ou ouro, à escolha). Depois do nível 3, cada avanço custa 1 e dá o bónus. Os níveis acumulam. A cor de fundo indica a roda onde o nível atua: verde Palenque (azul = pesca), cinzento Yaxchilan, castanho Tikal, amarelo Uxmal, azul Chichén Itzá.</p>'; }
 
 /* ---------- SVG do tabuleiro ---------- */
+/* ---------- texturas e materiais do tabuleiro (pedra e ouro) ---------- */
+const NOISE=(()=>{ try{ const c=document.createElement('canvas'); c.width=c.height=192; const x=c.getContext('2d'); if(!x) return '';
+ const im=x.createImageData(192,192); for(let i=0;i<im.data.length;i+=4){ const v=Math.random()*255|0; im.data[i]=im.data[i+1]=im.data[i+2]=v; im.data[i+3]=Math.random()<.5?18:34; }
+ x.putImageData(im,0,0); return c.toDataURL('image/png'); }catch(e){ return ''; } })();
+const DEFS=`<defs>
+ <radialGradient id="gBg" cx="38%" cy="48%" r="75%"><stop offset="0" stop-color="#262a2e"/><stop offset=".6" stop-color="#181b1e"/><stop offset="1" stop-color="#131517"/></radialGradient>
+ <linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6dc95"/><stop offset=".5" stop-color="#d6ab4f"/><stop offset="1" stop-color="#93691d"/></linearGradient>
+ <linearGradient id="gGoldH" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6dc95"/><stop offset=".45" stop-color="#c9973a"/><stop offset="1" stop-color="#f0cf7e"/></linearGradient>
+ <radialGradient id="gCog" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#e7e0d0"/><stop offset=".7" stop-color="#cbc2ae"/><stop offset="1" stop-color="#a99f89"/></radialGradient>
+ <radialGradient id="gHole" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#8f8673"/><stop offset="1" stop-color="#b5ab95"/></radialGradient>
+ <radialGradient id="gHub" cx="45%" cy="35%" r="70%"><stop offset="0" stop-color="#363b40"/><stop offset="1" stop-color="#16191b"/></radialGradient>
+ <radialGradient id="gJade" cx="45%" cy="35%" r="70%"><stop offset="0" stop-color="#4fd0b4"/><stop offset="1" stop-color="#1d7a68"/></radialGradient>
+ <linearGradient id="gPanel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#25292d" stop-opacity=".96"/><stop offset="1" stop-color="#1a1d20" stop-opacity=".96"/></linearGradient>
+ <linearGradient id="gParch" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6efdf"/><stop offset="1" stop-color="#e3d8bf"/></linearGradient>
+ <linearGradient id="gStep" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3f44"/><stop offset="1" stop-color="#2a2e32"/></linearGradient>
+ <radialGradient id="gTok" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></radialGradient>
+ <filter id="fSh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#000" flood-opacity=".6"/></filter>
+ ${NOISE?`<pattern id="pNoise" patternUnits="userSpaceOnUse" width="192" height="192"><image href="${NOISE}" width="192" height="192"/></pattern>`:''}
+</defs>`;
+const NZ=NOISE?'url(#pNoise)':'none';
+const GCOL={pal:'#4f7d2c',yax:'#6a645e',tik:'#97472a',uxm:'#a5801f',chi:'#2b6596'};
+const LBL='class="c lbl"';
+function shadowDisc(r){ return `<circle r="${r}" fill="#000" opacity=".01" filter="url(#fSh)"/><circle r="${r}" fill="#101214"/>`; }
+function tokenSVG(x,y,r,color,extra){ return `<circle cx="${x}" cy="${y}" r="${r}" fill="${color}" ${extra||''}/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#gTok)" pointer-events="none"/>`; }
 function workerSVG(w,x,y,r,pid){ const p=w.owner>=0?S.players[w.owner]:null; const mine=w.owner===pid&&canPickNow();
- return `<circle cx="${x}" cy="${y}" r="${r}" fill="${p?p.color:'#9a9a9a'}" stroke="#1d1a14" stroke-width="2.5" ${w.owner<0?'stroke-dasharray="4 3" fill-opacity=".75"':''} class="${mine?'clk':''}" ${mine?`data-act="pick" data-w="${w.id}"`:''} data-tip="${esc(p?`Trabalhador de ${p.name} em ${E.GI[w.gear].name} ${w.pos}${mine?' (toca para recolher)':''}`:`Trabalhador neutro em ${E.GI[w.gear].name} ${w.pos}: bloqueia o espaço e roda com a engrenagem até ao fim do jogo.`)}"/>`; }
+ const tip=esc(p?`Trabalhador de ${p.name} em ${E.GI[w.gear].name} ${w.pos}${mine?' (toca para recolher)':''}`:`Trabalhador neutro em ${E.GI[w.gear].name} ${w.pos}: bloqueia o espaço e roda com a engrenagem até ao fim do jogo.`);
+ if(!p) return `<circle cx="${x}" cy="${y}" r="${r}" fill="#8d8d8d" fill-opacity=".8" stroke="#2a2a2a" stroke-width="2.5" stroke-dasharray="4 3" data-tip="${tip}"/>`;
+ return `<circle cx="${x}" cy="${y}" r="${r}" fill="${p.color}" stroke="#14110b" stroke-width="2.5" class="${mine?'clk':''}" ${mine?`data-act="pick" data-w="${w.id}"`:''} data-tip="${tip}"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#gTok)" pointer-events="none"/>`; }
 function gearSVG(g){ const G=GEO[g], gi=E.GI[g], st=360/G.teeth, pid=curP();
  let h=`<g transform="translate(${G.cx},${G.cy})">`;
- h+=`<circle r="${G.r2+5}" fill="#3d5643"/>`;
+ h+=shadowDisc(G.r2+7);
  for(let k=0;k<=gi.max;k++){ const a=G.a0+k*st; const free=k>=gi.free;
   const isChi=g==='chi'&&k>=1&&k<=9;
-  const fill=(g==='pal'&&k===1)?'#4aa3d8':GCOL[g]; const op=k===0?0.35:(free?0.7:0.95);
-  h+=`<path d="${seg(G.r1,G.r2,a-st/2+1,a+st/2-1)}" fill="${fill}" fill-opacity="${op}" stroke="#1d1a14" stroke-opacity=".4" data-act="gear" data-g="${g}" data-k="${k}" class="segp" data-tip="${esc(tipGear(g,k))}"/>`;
+  const fill=(g==='pal'&&k===1)?'#2d7fae':GCOL[g]; const op=k===0?0.28:(free?0.78:1);
+  h+=`<path d="${seg(G.r1,G.r2,a-st/2+0.8,a+st/2-0.8)}" fill="${fill}" fill-opacity="${op}" stroke="#d6ab4f" stroke-opacity=".35" stroke-width="1" data-act="gear" data-g="${g}" data-k="${k}" class="segp" data-tip="${esc(tipGear(g,k))}"/>`;
   const [tx,ty]=P(0,0,(G.r1+G.r2)/2+4,a);
   let lab; if(g==='chi') lab=k===0?['—']:k>=10?['✱','livre']:[`${E.CHI[k].vp}★`,E.CHI[k].r?'+▣':'']; else lab=SHORT[g][k];
   if(lab[1]==='') lab=[lab[0]];
   if(isChi){ const c=E.CHI[k]; const [vx,vy]=P(0,0,(G.r1+G.r2)/2+14,a); const [gx,gy]=P(0,0,(G.r1+G.r2)/2-12,a);
-   h+=`<g pointer-events="none"><text x="${vx}" y="${vy}" font-size="19" class="c" fill="#fff" font-weight="700">${c.vp}★</text>`;
+   h+=`<g pointer-events="none"><text x="${vx}" y="${vy}" font-size="19" ${LBL} font-weight="700">${c.vp}★</text>`;
    const dx=c.r?-12:0; h+=godSVG(c.t,gx+dx,gy,11);
-   if(c.r) h+=`<text x="${gx+12}" y="${gy+1}" font-size="13" class="c" fill="#fff">+▣</text>`;
+   if(c.r) h+=`<text x="${gx+12}" y="${gy+1}" font-size="13" ${LBL}>+▣</text>`;
    h+='</g>'; }
-  else h+=`<g class="nolab" pointer-events="none" fill="${g==='chi'?'#fff':'#1d1a14'}">${txt2(tx,ty,lab,g==='chi'?19:20)}</g>`;
+  else h+=`<g pointer-events="none" class="segtxt">${txt2(tx,ty,lab,g==='chi'?19:20).replace(/class="c"/g,LBL)}</g>`;
   const [nx,ny]=P(0,0,G.r1+9,a); h+=`<text x="${nx}" y="${ny}" font-size="11" class="c sn" pointer-events="none">${k}</text>`;
-  if(isChi&&S.chi[k]!=null){ const [sx,sy]=P(0,0,G.r2+13,a); h+=`<circle cx="${sx}" cy="${sy}" r="12" fill="${S.players[S.chi[k]].color}" stroke="#1d1a14" stroke-width="2"/><text x="${sx}" y="${sy+1}" font-size="13" class="c" pointer-events="none">💀</text>`; }
+  if(isChi&&S.chi[k]!=null){ const [sx,sy]=P(0,0,G.r2+14,a); h+=tokenSVG(sx,sy,12,S.players[S.chi[k]].color,'stroke="#14110b" stroke-width="2"')+`<text x="${sx}" y="${sy+1}" font-size="13" class="c" pointer-events="none">💀</text>`; }
   if(g==='pal'&&k>=2&&k<=5) h+=jungleSVG(k,a,G);
  }
+ h+=`<circle r="${(G.r1+G.r2)/2}" fill="none" stroke="${NZ}" stroke-width="${G.r2-G.r1}" pointer-events="none"/>`;
+ h+=`<circle r="${G.r2+1.5}" fill="none" stroke="url(#gGoldH)" stroke-width="2.5" pointer-events="none"/><circle r="${G.r1-1}" fill="none" stroke="#d6ab4f" stroke-opacity=".6" stroke-width="1.2" pointer-events="none"/>`;
  // engrenagem que roda
  const rot=+(S.day*st).toFixed(2); const cur=UI.rotCur[g]!=null?UI.rotCur[g]:rot;
  h+=`<g class="rot" data-key="${g}" data-rot="${rot}" transform="rotate(${cur})">`;
- h+=`<circle r="${G.rg}" fill="#e9dcbc" stroke="#6b5a3a" stroke-width="3"/>`;
- for(let i=0;i<G.teeth;i++){ const a=G.a0+i*st; h+=`<rect x="-9" y="${G.rg-6}" width="18" height="17" rx="4" fill="#e9dcbc" stroke="#6b5a3a" stroke-width="2.5" transform="rotate(${(a-90).toFixed(1)})"/>`;
-  const [sx,sy]=P(0,0,G.rg-17,a); h+=`<circle cx="${sx}" cy="${sy}" r="11" fill="#d5c59e"/>`; }
- h+=`<circle r="${G.rg-5}" fill="#e9dcbc"/>`;
- for(let i=0;i<G.teeth;i++){ const [sx,sy]=P(0,0,G.rg-17,G.a0+i*st); h+=`<circle cx="${sx}" cy="${sy}" r="11" fill="#d5c59e"/>`; }
+ for(let i=0;i<G.teeth;i++){ const a=G.a0+i*st; h+=`<rect x="-10" y="${G.rg-7}" width="20" height="18" rx="5" fill="#cfc6b2" stroke="#7d725e" stroke-width="2" transform="rotate(${(a-90).toFixed(1)})"/>`; }
+ h+=`<circle r="${G.rg}" fill="url(#gCog)" stroke="#7d725e" stroke-width="2.5"/><circle r="${G.rg-27}" fill="none" stroke="#9c927d" stroke-width="1.5" stroke-dasharray="2 4"/>`;
+ for(let i=0;i<G.teeth;i++){ const [sx,sy]=P(0,0,G.rg-17,G.a0+i*st); h+=`<circle cx="${sx}" cy="${sy}" r="11" fill="url(#gHole)" stroke="#8a806b" stroke-width="1.2"/>`; }
  S.workers.filter(w=>w.gear===g).forEach(w=>{ const tooth=((w.pos-S.day)%G.teeth+G.teeth)%G.teeth; const [x,y]=P(0,0,G.rg-17,G.a0+tooth*st); h+=workerSVG(w,x,y,13,pid); });
  if(UI.pending.length&&pid>=0){ const pl=E.planPlacement(S,pid,UI.pending); if(pl.ok) pl.spots.forEach(sp=>{ if(sp.gear!==g) return; const tooth=((sp.pos-S.day)%G.teeth+G.teeth)%G.teeth; const [x,y]=P(0,0,G.rg-17,G.a0+tooth*st);
-  h+=`<circle cx="${x}" cy="${y}" r="13" fill="${S.players[pid].color}" fill-opacity=".45" stroke="#1d1a14" stroke-width="2.5" stroke-dasharray="3 3"/>`; }); }
+  h+=`<circle cx="${x}" cy="${y}" r="13" fill="${S.players[pid].color}" fill-opacity=".5" stroke="#14110b" stroke-width="2.5" stroke-dasharray="3 3"/>`; }); }
  h+='</g>';
  // centro: botão de colocar ou nome
  const hr=g==='chi'?46:38; const c=canPlaceNow()?addCost(g):null;
- if(c!=null) h+=`<g data-act="place" data-g="${g}" class="hub"><circle r="${hr}" fill="#2e8b57" stroke="#fff" stroke-width="3" class="pulse"/><text y="-6" font-size="13" class="c" fill="#fff">Colocar</text><text y="15" font-size="19" class="c" fill="#fff">+${c}🌽</text></g>`;
- else h+=`<g data-act="gear" data-g="${g}" class="hub"><circle r="${hr}" fill="#f6efdc" stroke="#6b5a3a" stroke-width="2"/><text y="5" font-size="${g==='chi'?14:15}" class="c" fill="#3a2f1e" font-weight="700">${gi.name}</text></g>`;
+ if(c!=null) h+=`<g data-act="place" data-g="${g}" class="hub" data-tip="Colocar um trabalhador nesta roda (custo total mostrado)"><circle r="${hr}" fill="url(#gJade)" stroke="url(#gGold)" stroke-width="3" class="pulse"/><text y="-7" font-size="12" class="c disp" fill="#eafff8" letter-spacing="1">COLOCAR</text><text y="14" font-size="19" class="c" fill="#fff" font-weight="700">+${c}🌽</text></g>`;
+ else h+=`<g data-act="gear" data-g="${g}" class="hub"><circle r="${hr}" fill="url(#gHub)" stroke="url(#gGold)" stroke-width="2.5"/><text y="1" font-size="${g==='chi'?14:15}" class="c disp" fill="#f2d68c" letter-spacing=".5">${gi.name}</text></g>`;
  return h+'</g>'; }
-function jungleSVG(k,a,G){ const F=S.jungle[k]; const [cx,cy]=P(0,0,G.r2+30,a); const n=F.length; const cols=n>2?2:n; const rows=Math.ceil(n/2); const s=17;
+function jungleSVG(k,a,G){ const F=S.jungle[k]; const [cx,cy]=P(0,0,G.r2+31,a); const n=F.length; const cols=n>2?2:n; const rows=Math.ceil(n/2); const s=17;
  let h=`<g transform="translate(${cx-cols*s/2-1},${cy-rows*s/2-1})" data-act="gear" data-g="pal" data-tip="${esc(`Selva de Palenque ${k}: ${F.filter(f=>f.wood).length} peça(s) com madeira, ${F.filter(f=>f.corn&&!f.wood).length} só com milho, ${F.filter(f=>!f.corn&&!f.wood).length} vazia(s). A madeira tapa o milho: só se colhe o milho depois de tirar a madeira.`)}">`;
  F.forEach((f,i)=>{ const x=(i%2)*(s+2), y=Math.floor(i/2)*(s+2);
-  const fill=f.wood?'#6e4320':f.corn?'#e6c23c':'#cdbf9e';
-  h+=`<rect x="${x}" y="${y}" width="${s}" height="${s}" rx="3" fill="${fill}" stroke="#1d1a14" stroke-width="1.5" ${!f.wood&&!f.corn?'stroke-dasharray="3 2"':''}/>`;
+  const fill=f.wood?'#5b3a1d':f.corn?'#d9b23a':'none';
+  h+=`<rect x="${x}" y="${y}" width="${s}" height="${s}" rx="4" fill="${fill}" stroke="${f.wood||f.corn?'#14110b':'#6c665c'}" stroke-width="1.5" ${!f.wood&&!f.corn?'stroke-dasharray="3 2"':''}/>`;
   h+=`<text x="${x+s/2}" y="${y+s/2+1}" font-size="11" class="c" pointer-events="none">${f.wood?'🪵':f.corn?'🌽':''}</text>`; });
  return h+'</g>'; }
 function calSVG(){ const R=168,T=26,st=360/T; const rot=+(-S.day*st).toFixed(2); const cur=UI.rotCur.cal!=null?UI.rotCur.cal:rot;
- let h=`<g transform="translate(560,500)"><circle r="${R+26}" fill="#2f4535"/>`;
+ let h=`<g transform="translate(560,500)">`+shadowDisc(R+28)+`<circle r="${R+27}" fill="none" stroke="url(#gGoldH)" stroke-width="2.5"/>`;
  h+=`<g class="rot" data-key="cal" data-rot="${rot}" transform="rotate(${cur})">`;
  for(let k=0;k<T;k++){ const a=180+k*st; const f=E.FOOD[k===0?26:k];
-  h+=`<rect x="-12" y="${R-8}" width="24" height="26" rx="5" fill="${f==='mid'?'#b5651d':f==='end'?'#1f9c94':'#e9dcbc'}" stroke="#6b5a3a" stroke-width="2.5" transform="rotate(${(a-90).toFixed(1)})" data-tip="${esc(tipDay(k===0?26:k))}"/>`; }
+  h+=`<rect x="-12.5" y="${R-8}" width="25" height="27" rx="6" fill="${f==='mid'?'#c0702a':f==='end'?'#2a9c8b':'#cfc6b2'}" stroke="${f?'#14110b':'#7d725e'}" stroke-width="2" transform="rotate(${(a-90).toFixed(1)})" data-tip="${esc(tipDay(k===0?26:k))}"/>`; }
  for(let i=1;i<=Math.min(S.accCorn,25);i++){ const k=((S.day-i)%T+T)%T; const [cx,cy]=P(0,0,R+5,180+k*st);
-  h+=`<circle cx="${cx}" cy="${cy}" r="12" fill="#f2c94c" stroke="#8a6d1a" stroke-width="2"/><text x="${cx}" y="${cy+1}" font-size="13" class="c">🌽</text>`; }
- h+=`<circle r="${R}" fill="#e9dcbc" stroke="#6b5a3a" stroke-width="3"/><circle r="${R-48}" fill="none" stroke="#cbb88f" stroke-width="2"/>`;
+  h+=`<circle cx="${cx}" cy="${cy}" r="12" fill="url(#gGold)" stroke="#5e4310" stroke-width="1.8"/><text x="${cx}" y="${cy+1}" font-size="13" class="c">🌽</text>`; }
+ h+=`<circle r="${R}" fill="url(#gCog)" stroke="#7d725e" stroke-width="3"/><circle r="${R}" fill="${NZ}" pointer-events="none"/><circle r="${R-44}" fill="none" stroke="#9c927d" stroke-width="1.5"/><circle r="${R-50}" fill="none" stroke="#9c927d" stroke-width="1" stroke-dasharray="2 5"/>`;
  for(let k=0;k<T;k++){ const a=180+k*st; const [x,y]=P(0,0,R-22,a); const d=k===0?26:k; const f=E.FOOD[d]; const left=[7,13,20,26].find(x=>x>=d)-d;
-  h+=`<text x="${x}" y="${y}" font-size="${f?15:13}" class="c" fill="${f?(f==='mid'?'#9a4f12':'#127a73'):'#6b5a3a'}" font-weight="${f?700:400}" transform="rotate(${(a+90).toFixed(1)} ${x} ${y})">${f?(f==='mid'?'▣':'★'):left}</text>`; }
+  h+=`<text x="${x}" y="${y}" font-size="${f?16:14}" class="c disp" fill="${f?(f==='mid'?'#9a4f12':'#14736a'):'#5d5443'}" transform="rotate(${(a+90).toFixed(1)} ${x} ${y})">${f?(f==='mid'?'▣':'★'):left}</text>`; }
  h+=`</g>`;
- h+=`<polygon points="-${R+42},-16 -${R+42},16 -${R+8},0" fill="#f3d36b" stroke="#1d1a14" stroke-width="2.5"/>`;
+ h+=`<polygon points="-${R+46},-17 -${R+46},17 -${R+9},0" fill="url(#gGold)" stroke="#14110b" stroke-width="2"/>`;
  const nf=E.nextFoodIn(S);
- h+=`<circle r="70" fill="#f6efdc" stroke="#6b5a3a" stroke-width="2"/><text y="-26" font-size="15" class="c" fill="#6b5a3a">Dia</text><text y="0" font-size="30" class="c" font-weight="700" fill="#2b2418">${S.day}<tspan font-size="15" fill="#6b5a3a">/26</tspan></text>
-  <text y="28" font-size="16" class="c">${S.accCorn>0?`🌽×${S.accCorn}`:''}</text><text y="48" font-size="11" class="c" fill="#6b5a3a">${nf===0?'comida nesta ronda!':`comida em ${nf}`}</text>`;
+ h+=`<circle r="74" fill="url(#gHub)" stroke="url(#gGold)" stroke-width="3"/><circle r="66" fill="none" stroke="#d6ab4f" stroke-opacity=".35" stroke-width="1"/>
+  <text y="-30" font-size="12" class="c disp" fill="#a39a87" letter-spacing="3">DIA</text><text y="1" font-size="34" class="c disp" fill="#f2d68c">${S.day}<tspan font-size="15" fill="#a39a87">/26</tspan></text>
+  <text y="29" font-size="15" class="c" fill="#ece4d2">${S.accCorn>0?`🌽×${S.accCorn}`:''}</text><text y="49" font-size="11" class="c" fill="${nf===0?'#e0714f':'#a39a87'}">${nf===0?'comida nesta ronda!':`comida em ${nf}`}</text>`;
  return h+'</g>'; }
 function startSVG(){ const pid=curP(); const w=S.startWorker; const cx=92,cy=500; const c=(canPlaceNow()&&w===null)?addCost('start'):null; const fp=S.players[S.first];
- let h=`<g transform="translate(${cx},${cy})">`;
- if(c!=null&&!UI.pending.includes('start')) h+=`<g data-act="place" data-g="start" class="hub"><circle r="54" fill="#2e8b57" stroke="#fff" stroke-width="3" class="pulse"/><text y="-12" font-size="12" class="c" fill="#fff">Jogador inicial</text><text y="12" font-size="19" class="c" fill="#fff">+${c}🌽</text></g>`;
- else { h+=`<g data-act="startinfo" data-tip="Espaço do Jogador Inicial: dá o milho acumulado no calendário, passa a primeiro jogador e, com o tabuleiro claro, permite avançar 2 dias."><circle r="54" fill="#f1d77e" stroke="#6b5a3a" stroke-width="3"/><text y="-22" font-size="12" class="c" fill="#3a2f1e" font-weight="700">Jogador</text><text y="-7" font-size="12" class="c" fill="#3a2f1e" font-weight="700">inicial</text></g>`;
-  if(w!==null) h+=`<circle cy="20" r="14" fill="${S.players[w].color}" stroke="#1d1a14" stroke-width="2.5"/>`;
-  else if(UI.pending.includes('start')) h+=`<circle cy="20" r="14" fill="${S.players[pid].color}" fill-opacity=".45" stroke="#1d1a14" stroke-width="2.5" stroke-dasharray="3 3"/>`; }
- h+=`<g transform="translate(40,-44)" pointer-events="none"><circle r="15" fill="${fp.color}" stroke="#fff" stroke-width="2.5"/><text y="1" font-size="12" class="c" fill="#fff" font-weight="700">1.º</text></g>`;
+ let h=`<g transform="translate(${cx},${cy})">`+shadowDisc(56);
+ if(c!=null&&!UI.pending.includes('start')) h+=`<g data-act="place" data-g="start" class="hub" data-tip="Colocar um trabalhador no Espaço do Jogador Inicial"><circle r="54" fill="url(#gJade)" stroke="url(#gGold)" stroke-width="3" class="pulse"/><text y="-12" font-size="11" class="c disp" fill="#eafff8" letter-spacing="1">JOGADOR INICIAL</text><text y="12" font-size="19" class="c" fill="#fff" font-weight="700">+${c}🌽</text></g>`;
+ else { h+=`<g data-act="startinfo" data-tip="Espaço do Jogador Inicial: dá o milho acumulado no calendário, passa a primeiro jogador e, com o tabuleiro claro, permite avançar 2 dias."><circle r="54" fill="url(#gHub)" stroke="url(#gGold)" stroke-width="3"/><text y="-22" font-size="12" class="c disp" fill="#f2d68c" letter-spacing="1">JOGADOR</text><text y="-7" font-size="12" class="c disp" fill="#f2d68c" letter-spacing="1">INICIAL</text></g>`;
+  if(w!==null) h+=tokenSVG(0,20,14,S.players[w].color,'stroke="#14110b" stroke-width="2.5"');
+  else if(UI.pending.includes('start')) h+=`<circle cy="20" r="14" fill="${S.players[pid].color}" fill-opacity=".5" stroke="#14110b" stroke-width="2.5" stroke-dasharray="3 3"/>`; }
+ h+=`<g transform="translate(40,-44)" pointer-events="none">${tokenSVG(0,0,15,fp.color,'stroke="#f2d68c" stroke-width="2.5"')}<text y="1" font-size="11" class="c" fill="#fff" font-weight="700">1.º</text></g>`;
  return h+'</g>'; }
 function templesSVG(){ const x0=1095,y0=10,W=190,gap=8,SH=40,maxN=9; let h='';
  E.TEMPLES.forEach((T,t)=>{ const n=T.vp.length; const x=x0+t*(W+gap); const top=y0+40+(maxN-n)*SH;
   h+=`<g data-act="temples">`;
-  h+=`<rect x="${x}" y="${top-40}" width="${W}" height="36" rx="8" fill="${TCOL[t]}" data-tip="${esc(`Templo de ${E.GOD[t]}. Bónus para quem estiver mais alto: ${T.bonus[0]} pontos no dia 13 e ${T.bonus[1]} no dia 26 (empate: metade cada).`)}"/>${godSVG(t,x+18,top-22,13)}<text x="${x+W/2+8}" y="${top-27}" font-size="15" class="c" fill="#fff" font-weight="700">${E.GOD[t]}</text><text x="${x+W/2+8}" y="${top-10}" font-size="12" class="c" fill="#fff">bónus ${T.bonus[0]} · ${T.bonus[1]}</text>`;
-  for(let i=n-1;i>=0;i--){ const y=top+(n-1-i)*SH; const inset=Math.max(0,(n-1-i))*4;
-   const fill=i===n-1?'#f3d36b':i===1?'#efe2bf':i===0?'#d9cbb0':'#f6efdc';
-   h+=`<g data-tip="${esc(tipTemple(t,i))}"><rect x="${x+inset}" y="${y}" width="${W-2*inset}" height="${SH-3}" rx="4" fill="${fill}" stroke="${TCOL[t]}" stroke-width="2"/>`;
-   h+=`<text x="${x+inset+24}" y="${y+SH/2}" font-size="15" class="c" font-weight="700" fill="#2b2418">${T.vp[i]}★</text>`;
+  h+=`<rect x="${x}" y="${top-40}" width="${W}" height="36" rx="8" fill="${TCOL[t]}" stroke="url(#gGold)" stroke-width="1.5" data-tip="${esc(`Templo de ${E.GOD[t]}. Bónus para quem estiver mais alto: ${T.bonus[0]} pontos no dia 13 e ${T.bonus[1]} no dia 26 (empate: metade cada).`)}"/>${godSVG(t,x+18,top-22,13)}<text x="${x+W/2+8}" y="${top-27}" font-size="15" class="c disp" fill="#fff">${E.GOD[t]}</text><text x="${x+W/2+8}" y="${top-11}" font-size="11.5" class="c" fill="#fff" fill-opacity=".85">bónus ${T.bonus[0]} · ${T.bonus[1]}</text>`;
+  for(let i=n-1;i>=0;i--){ const y=top+(n-1-i)*SH; const inset=Math.max(0,(n-1-i))*4; const isTop=i===n-1;
+   h+=`<g data-tip="${esc(tipTemple(t,i))}"><rect x="${x+inset}" y="${y}" width="${W-2*inset}" height="${SH-3}" rx="4" fill="${isTop?'url(#gGold)':'url(#gStep)'}" stroke="${i===1?'#d6ab4f':TCOL[t]}" stroke-width="${i===1?2:1.5}" stroke-opacity="${i===1?1:.8}"/>`;
+   h+=`<rect x="${x+inset}" y="${y}" width="${W-2*inset}" height="${SH-3}" rx="4" fill="${NZ}" pointer-events="none"/>`;
+   h+=`<text x="${x+inset+24}" y="${y+SH/2}" font-size="15" class="c disp" fill="${isTop?'#2a1f0b':(T.vp[i]<0?'#e0714f':'#ece4d2')}">${T.vp[i]}★</text>`;
    if(T.res[i]) h+=`<text x="${x+inset+56}" y="${y+SH/2}" font-size="17" class="c">${E.IC[T.res[i]]}</text>`;
-   const ps=S.players.filter(p=>p.temples[t]===i); ps.forEach((p,j)=>{ h+=`<circle cx="${x+W-inset-16-j*20}" cy="${y+SH/2-1}" r="9" fill="${p.color}" stroke="#1d1a14" stroke-width="2"/>`; }); h+='</g>'; }
+   if(i===1) h+=`<text x="${x+inset+78}" y="${y+SH/2}" font-size="9" class="c" fill="#d6ab4f" letter-spacing="1.5" opacity=".8">INÍCIO</text>`;
+   const ps=S.players.filter(p=>p.temples[t]===i); ps.forEach((p,j)=>{ h+=tokenSVG(x+W-inset-16-j*20,y+SH/2-1,9,p.color,'stroke="#14110b" stroke-width="2"'); }); h+='</g>'; }
   h+='</g>'; });
  return h; }
-function techSVG(){ const x0=1095,y0=458,NW=100,CW=98,RH=52; let h=`<g data-act="tech"><rect x="${x0-4}" y="${y0-26}" width="${NW+5*CW+8}" height="${4*RH+30}" rx="10" fill="#f6efdc" opacity=".97"/>`;
- h+=`<text x="${x0+4}" y="${y0-9}" font-size="14" font-weight="700" fill="#2b2418">Tecnologias</text>`;
- ['1','2','3','bónus'].forEach((l,i)=>{ h+=`<text x="${x0+NW+CW*(i+1)+CW/2}" y="${y0-9}" font-size="12" class="c" fill="#6b5a3a">${l}</text>`; });
+function techSVG(){ const x0=1095,y0=458,NW=100,CW=98,RH=52; let h=`<g data-act="tech"><rect x="${x0-6}" y="${y0-28}" width="${NW+5*CW+10}" height="${4*RH+34}" rx="12" fill="url(#gPanel)" stroke="#d6ab4f" stroke-opacity=".5"/>`;
+ h+=`<text x="${x0+4}" y="${y0-11}" font-size="15" class="disp" fill="#f2d68c" letter-spacing=".5">Tecnologias</text>`;
+ ['nível 1','nível 2','nível 3','bónus'].forEach((l,i)=>{ h+=`<text x="${x0+NW+CW*(i+1)+CW/2-2}" y="${y0-11}" font-size="11" class="c" fill="#a39a87" letter-spacing=".5">${l}</text>`; });
  E.TECHN.forEach((n,t)=>{ const y=y0+t*RH;
-  h+=`<g data-tip="${esc(TECHTIP[t])}"><rect x="${x0}" y="${y+4}" width="${NW-4}" height="${RH-8}" fill="transparent"/>`+techSVG1(t,x0+13,y+RH/2,10)+`<text x="${x0+28}" y="${y+RH/2}" font-size="12" fill="#2b2418" dominant-baseline="middle" font-weight="600">${n}</text></g>`;
+  h+=`<g data-tip="${esc(TECHTIP[t])}"><rect x="${x0}" y="${y+4}" width="${NW-4}" height="${RH-8}" fill="transparent"/>`+techSVG1(t,x0+13,y+RH/2,10)+`<text x="${x0+28}" y="${y+RH/2}" font-size="12" fill="#ece4d2" dominant-baseline="middle" font-weight="600">${n}</text></g>`;
   for(let l=0;l<5;l++){ const x=x0+NW+l*CW;
    h+=`<g data-tip="${esc(l===0?`${E.TECHN[t]}: ainda sem nível.`:l===4?`${E.TECHN[t]}, bónus: ${E.TECHBON[t]}. Depois do nível 3, cada avanço custa 1 recurso e dá este bónus.`:tipTech(t,l-1))}">`;
    if(l>=1&&l<=3){ const c=TCELL[t][l-1]; const hh=(RH-4)/c.length;
-    h+=`<clipPath id="tc${t}${l}"><rect x="${x}" y="${y+2}" width="${CW-4}" height="${RH-4}" rx="5"/></clipPath><g clip-path="url(#tc${t}${l})">`+c.map((k,i)=>`<rect x="${x}" y="${y+2+i*hh}" width="${CW-4}" height="${hh}" fill="${TCC[k]}"/>`).join('')+`</g><rect x="${x}" y="${y+2}" width="${CW-4}" height="${RH-4}" rx="5" fill="none" stroke="#a8956c"/>`; }
-   else h+=`<rect x="${x}" y="${y+2}" width="${CW-4}" height="${RH-4}" rx="5" fill="${l===4?'#f3d36b':'#e2d6b8'}" stroke="#cbb88f"/>`;
-   if(l>0) h+=`<text x="${x+CW/2-2}" y="${y+18}" font-size="12" class="c" fill="#3a2f1e">${esc(TECHSHORT[t][l-1])}</text>`;
-   const ps=S.players.filter(p=>Math.min(p.tech[t],3)===l&&l<4); ps.forEach((p,j)=>{ h+=`<circle cx="${x+14+j*20}" cy="${y+RH-16}" r="8" fill="${p.color}" stroke="#1d1a14" stroke-width="2"/>`; }); h+='</g>'; } });
+    h+=`<clipPath id="tc${t}${l}"><rect x="${x}" y="${y+2}" width="${CW-4}" height="${RH-4}" rx="6"/></clipPath><g clip-path="url(#tc${t}${l})" opacity=".9">`+c.map((k,i)=>`<rect x="${x}" y="${y+2+i*hh}" width="${CW-4}" height="${hh}" fill="${TCC[k]}"/>`).join('')+`</g><rect x="${x}" y="${y+2}" width="${CW-4}" height="${RH-4}" rx="6" fill="none" stroke="#000" stroke-opacity=".35"/>`; }
+   else h+=`<rect x="${x}" y="${y+2}" width="${CW-4}" height="${RH-4}" rx="6" fill="${l===4?'url(#gGold)':'#2a2e32'}" stroke="${l===4?'#5e4310':'#3a3f44'}"/>`;
+   if(l>0) h+=`<text x="${x+CW/2-2}" y="${y+18}" font-size="12" class="c" fill="#2a241a">${esc(TECHSHORT[t][l-1])}</text>`;
+   const ps=S.players.filter(p=>Math.min(p.tech[t],3)===l&&l<4); ps.forEach((p,j)=>{ h+=tokenSVG(x+14+j*20,y+RH-16,8,p.color,'stroke="#14110b" stroke-width="2"'); }); h+='</g>'; } });
  return h+'</g>'; }
 function wrap(text,max){ const words=text.split(' '); const lines=[]; let cur='';
  words.forEach(w=>{ if((cur+' '+w).trim().length>max&&cur){ lines.push(cur); cur=w; } else cur=(cur+' '+w).trim(); }); if(cur) lines.push(cur); return lines; }
+function cardShell(x,y,w,h,col){ return `<rect x="${x+1}" y="${y+4}" width="${w}" height="${h}" rx="8" fill="#000" opacity=".45"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="url(#gParch)" stroke="${col}" stroke-width="2.5"/>`; }
 function cardsSVG(){ const x0=1095,W=590; let h='';
  const cw=W/6;
- h+=`<text x="${x0}" y="${697}" font-size="14" font-weight="700" fill="#f3ead6">Edifícios — era ${S.age} (${(S.age===1?S.deck1:S.deck2).length} no baralho)</text>`;
- const BC={farm:'#d9b12f',civic:'#4b8a3c',tomb:'#8b7a6a',shrine:'#3f7fb8'};
+ h+=`<text x="${x0}" y="${697}" font-size="14" class="disp" fill="#f2d68c" letter-spacing=".5">Edifícios <tspan fill="#a39a87" font-size="12" font-family="Figtree,system-ui,sans-serif">· era ${S.age} · ${(S.age===1?S.deck1:S.deck2).length} no baralho</tspan></text>`;
+ const BC={farm:'#c99c22',civic:'#3f7f33',tomb:'#7d6c5b',shrine:'#346fa6'};
  S.slots.forEach((bid,i)=>{ const x=x0+i*cw, y=706, ch=152;
-  if(bid==null){ h+=`<rect x="${x+2}" y="${y}" width="${cw-6}" height="${ch}" rx="7" fill="none" stroke="#6f8a76" stroke-dasharray="5 4"/>`; return; }
+  if(bid==null){ h+=`<rect x="${x+2}" y="${y}" width="${cw-6}" height="${ch}" rx="8" fill="none" stroke="#d6ab4f" stroke-opacity=".3" stroke-dasharray="5 4"/>`; return; }
   const b=E.BLD[bid];
-  h+=`<g data-act="bld" data-id="${bid}" data-tip="${esc(`${b.n} (${E.BTYPE[b.t]}). Custo: ${E.costTxt(b.c)}. Efeito: ${E.effText(b.e)}. Toca para ver em grande.`)}"><rect x="${x+2}" y="${y}" width="${cw-6}" height="${ch}" rx="7" fill="#fffaf0" stroke="${BC[b.t]}" stroke-width="4"/>`;
-  h+=`<rect x="${x+2}" y="${y}" width="${cw-6}" height="20" rx="7" fill="${BC[b.t]}"/><text x="${x+cw/2-1}" y="${y+11}" font-size="11" class="c" fill="#fff">${({farm:"Quinta",civic:"Cívico",tomb:"Túmulo",shrine:"Santuário"})[b.t]}</text>`;
-  wrap(b.n,13).slice(0,2).forEach((l,j)=>{ h+=`<text x="${x+cw/2-1}" y="${y+34+j*15}" font-size="12" class="c" font-weight="700" fill="#2b2418">${esc(l)}</text>`; });
+  h+=`<g data-act="bld" data-id="${bid}" data-tip="${esc(`${b.n} (${E.BTYPE[b.t]}). Custo: ${E.costTxt(b.c)}. Efeito: ${E.effText(b.e)}. Toca para ver em grande.`)}">`+cardShell(x+2,y,cw-6,ch,BC[b.t]);
+  h+=`<path d="M${x+2},${y+21} v-13 a8,8 0 0 1 8,-8 h${cw-22} a8,8 0 0 1 8,8 v13 z" fill="${BC[b.t]}"/><text x="${x+cw/2-1}" y="${y+11}" font-size="10.5" class="c" fill="#fff" letter-spacing=".8">${({farm:"QUINTA",civic:"CÍVICO",tomb:"TÚMULO",shrine:"SANTUÁRIO"})[b.t]}</text>`;
+  wrap(b.n,13).slice(0,2).forEach((l,j)=>{ h+=`<text x="${x+cw/2-1}" y="${y+35+j*15}" font-size="12.5" class="c disp" fill="#2a241a">${esc(l)}</text>`; });
   h+=`<text x="${x+cw/2-1}" y="${y+76}" font-size="16" class="c">${E.costTxt(b.c)}</text>`;
   { const ls=effShort(b.e); const isI=l=>l[0]==='§'||l[0]==='¤'; const gods=ls.filter(isI); const rest=ls.filter(l=>!isI(l)); let row=0;
   if(gods.length){ const gw=34; const x0g=x+cw/2-1-(gods.length*gw)/2+gw/2; gods.forEach((l,gi)=>{ const gx=x0g+gi*gw; h+=(l[0]==='§'?godSVG(+l[1],gx-7,y+98,8):techSVG1(+l[1],gx-7,y+98,8))+`<text x="${gx+8}" y="${y+98}" font-size="11.5" class="c" fill="#3a2f1e">${esc(l.slice(2))}</text>`; }); row=1; }
   rest.slice(0,4-row).forEach((l,j)=>{ h+=`<text x="${x+cw/2-1}" y="${y+98+(j+row)*15}" font-size="11.5" class="c" fill="#3a2f1e">${esc(l)}</text>`; }); }
   h+='</g>'; });
- h+=`<text x="${x0}" y="${880}" font-size="14" font-weight="700" fill="#f3ead6">Monumentos (Tikal 4)</text>`;
- S.monuments.forEach((mid,i)=>{ const x=x0+i*cw, y=888, ch=104; if(mid==null){ h+=`<rect x="${x+2}" y="${y}" width="${cw-6}" height="${ch}" rx="7" fill="none" stroke="#6f8a76" stroke-dasharray="5 4"/>`; return; }
+ h+=`<text x="${x0}" y="${880}" font-size="14" class="disp" fill="#f2d68c" letter-spacing=".5">Monumentos <tspan fill="#a39a87" font-size="12" font-family="Figtree,system-ui,sans-serif">· só em Tikal 4</tspan></text>`;
+ S.monuments.forEach((mid,i)=>{ const x=x0+i*cw, y=888, ch=104; if(mid==null){ h+=`<rect x="${x+2}" y="${y}" width="${cw-6}" height="${ch}" rx="8" fill="none" stroke="#d6ab4f" stroke-opacity=".3" stroke-dasharray="5 4"/>`; return; }
   const m=E.MON[mid];
-  h+=`<g data-act="mon" data-id="${mid}" data-tip="${esc(`Monumento ${m.n}. Custo: ${E.costTxt(m.c)}. No fim do jogo: ${m.d}. Só se constrói em Tikal 4.`)}"><rect x="${x+2}" y="${y}" width="${cw-6}" height="${ch}" rx="7" fill="#f7ead2" stroke="${BC[m.t]}" stroke-width="4"/>`;
-  wrap(m.n,13).slice(0,2).forEach((l,j)=>{ h+=`<text x="${x+cw/2-1}" y="${y+16+j*14}" font-size="11.5" class="c" font-weight="700" fill="#2b2418">${esc(l)}</text>`; });
+  h+=`<g data-act="mon" data-id="${mid}" data-tip="${esc(`Monumento ${m.n}. Custo: ${E.costTxt(m.c)}. No fim do jogo: ${m.d}. Só se constrói em Tikal 4.`)}">`+cardShell(x+2,y,cw-6,ch,BC[m.t])+`<rect x="${x+6}" y="${y+4}" width="${cw-14}" height="${ch-8}" rx="5" fill="none" stroke="#d6ab4f" stroke-opacity=".7"/>`;
+  wrap(m.n,13).slice(0,2).forEach((l,j)=>{ h+=`<text x="${x+cw/2-1}" y="${y+17+j*14}" font-size="12" class="c disp" fill="#2a241a">${esc(l)}</text>`; });
   const mc=E.costTxt(m.c); const nIc=Object.values(m.c).reduce((a,b)=>a+b,0); h+=`<text x="${x+cw/2-1}" y="${y+54}" font-size="${nIc>6?10:nIc>5?11.5:12.5}" class="c">${mc}</text>`;
   wrap(MONSHORT[mid],14).slice(0,2).forEach((l,j)=>{ h+=`<text x="${x+cw/2-1}" y="${y+76+j*14}" font-size="11.5" class="c" fill="#3a2f1e">${esc(l)}</text>`; });
   h+='</g>'; });
  return h; }
 function boardSVG(){ const v=UI.vb;
- return `<svg id="svg" viewBox="${v.x} ${v.y} ${v.w} ${v.h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
- <rect x="0" y="0" width="${VBW}" height="${VBH}" fill="#24382b"/>
- <rect x="1080" y="0" width="620" height="${VBH}" fill="#1d2e23"/>
+ return `<svg id="svg" viewBox="${v.x} ${v.y} ${v.w} ${v.h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${DEFS}
+ <rect x="-4000" y="-4000" width="${VBW+8000}" height="${VBH+8000}" fill="#131517"/>
+ <rect x="-600" y="-400" width="${VBW+1200}" height="${VBH+800}" fill="url(#gBg)"/>
+ <rect x="-4000" y="-4000" width="${VBW+8000}" height="${VBH+8000}" fill="${NZ}" pointer-events="none"/>
+ <rect x="1078" y="-4000" width="4622" height="${VBH+8000}" fill="#000" opacity=".2"/>
+ <line x1="1078" y1="18" x2="1078" y2="${VBH-18}" stroke="#d6ab4f" stroke-opacity=".35"/>
  ${calSVG()}${E.GEARS.map(gearSVG).join('')}${startSVG()}${marketSVG()}${scoreSVG()}${templesSVG()}${techSVG()}${cardsSVG()}</svg>`; }
 
 
-function refBox(x,y,w,h,title,rows,act,tip){ let s=`<g ${act?`data-act="${act}"`:''} data-tip="${esc(tip||'')}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="#f6efdc" stroke="#b8a27a" stroke-width="2"/>`;
- s+=`<text x="${x+w/2}" y="${y+18}" font-size="14" class="c" font-weight="700" fill="#2b2418">${title}</text>`;
- rows.forEach((r,i)=>{ s+=`<text x="${x+w/2}" y="${y+44+i*25}" font-size="16" class="c" fill="#2b2418">${r}</text>`; });
+function refBox(x,y,w,h,title,rows,act,tip){ let s=`<g ${act?`data-act="${act}"`:''} data-tip="${esc(tip||'')}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="url(#gPanel)" stroke="#d6ab4f" stroke-opacity=".6" stroke-width="1.5"/>`;
+ s+=`<text x="${x+w/2}" y="${y+19}" font-size="14" class="c disp" fill="#f2d68c" letter-spacing=".5">${title}</text><line x1="${x+18}" y1="${y+32}" x2="${x+w-18}" y2="${y+32}" stroke="#d6ab4f" stroke-opacity=".3"/>`;
+ rows.forEach((r,i)=>{ s+=`<text x="${x+w/2}" y="${y+48+i*25}" font-size="15" class="c" fill="#ece4d2">${r}</text>`; });
  return s+'</g>'; }
-function marketSVG(){ return refBox(755,22,170,124,'Mercado ⇄',['🪵 ⇄ 2🌽','🪨 ⇄ 3🌽','🪙 ⇄ 4🌽'],'market','Mercado (Uxmal 2): troca recursos por milho ou milho por recursos, nestes valores, quantas vezes quiseres.'); }
-function scoreSVG(){ return refBox(452,812,192,176,'Fim do jogo',['🪵=2🌽 🪨=3🌽 🪙=4🌽','4🌽 = 1★','💀 = 3★','🗿 = ★ do monumento'],'score','Pontuação final: recursos viram milho, cada 4 milho vale 1 ponto, cada caveira 3 pontos e cada monumento o que diz a carta. Toca para ver a pontuação atual.')+`<text x="548" y="980" font-size="11" class="c" fill="#7a6b52" pointer-events="none">toca para ver a pontuação atual</text>`; }
+function marketSVG(){ return refBox(755,22,170,124,'Mercado',['🪵 ⇄ 2🌽','🪨 ⇄ 3🌽','🪙 ⇄ 4🌽'],'market','Mercado (Uxmal 2): troca recursos por milho ou milho por recursos, nestes valores, quantas vezes quiseres.'); }
+function scoreSVG(){ return refBox(452,812,192,176,'Fim do jogo',['🪵=2🌽 🪨=3🌽 🪙=4🌽','4🌽 = 1★','💀 = 3★','🗿 = ★ do monumento'],'score','Pontuação final: recursos viram milho, cada 4 milho vale 1 ponto, cada caveira 3 pontos e cada monumento o que diz a carta. Toca para ver a pontuação atual.')+`<text x="548" y="978" font-size="10.5" class="c" fill="#a39a87" pointer-events="none">toca para ver a pontuação atual</text>`; }
 function finalNow(p){ const conv=p.wood*2+p.stone*3+p.gold*4; const cornVP=Math.floor((p.corn+conv)/4); const skullVP=p.skull*3; const mons=p.monuments.map(m=>({n:E.MON[m].n,vp:E.monScore(S,p,m)})); const monVP=mons.reduce((a,x)=>a+x.vp,0);
  return {conv,cornVP,skullVP,mons,monVP,total:p.vp+cornVP+skullVP+monVP}; }
 function scoreSheet(){ const rows=S.players.map(p=>({p,f:finalNow(p)})).sort((a,b)=>b.f.total-a.f.total);
@@ -424,7 +456,7 @@ function marketSheet(){ return `<h3>Mercado</h3><table class="res"><tr><th>Recur
 /* ---------- painel lateral ---------- */
 function playersHTML(full){ const cur=curP();
  return S.players.map(p=>{ const fi=E.feedInfo(p); const on=E.ownOnGears(S,p.id);
-  return `<div class="pl ${p.id===cur?'cur':''}" style="border-color:${p.color}" data-act="psheet" data-p="${p.id}" title="Ver as cartas de ${esc(p.name)}"><div class="pn">${tok(p)} <b>${esc(p.name)}</b>${p.bot?' 🤖':''}${p.id===S.first?' <span class="badge">1.º</span>':''} <span class="vp">${p.vp}★</span></div>
+  return `<div class="pl ${p.id===cur?'cur':''}" style="--pc:${p.color}" data-act="psheet" data-p="${p.id}" title="Ver as cartas de ${esc(p.name)}"><div class="pn">${tok(p)} <b>${esc(p.name)}</b>${p.bot?' 🤖':''}${p.id===S.first?' <span class="badge">1.º</span>':''} <span class="vp">${p.vp}★</span></div>
   <div class="st"><span data-tip="Milho: paga a colocação de trabalhadores e a comida">🌽${p.corn}</span> <span data-tip="Madeira (vale 2 milho)">🪵${p.wood}</span> <span data-tip="Pedra (vale 3 milho)">🪨${p.stone}</span> <span data-tip="Ouro (vale 4 milho)">🪙${p.gold}</span> <span data-tip="Caveiras de cristal: usam-se em Chichén Itzá; no fim valem 3 pontos cada">💀${p.skull}</span></div>
   <div class="st small">👤${E.availWorkers(S,p.id)} livres · ${on} nas rodas · ${p.workers} total · come ${fi.cost}🌽 · ${p.light?'☀':'🌙'}</div>
   ${!full?`<div class="st small more">🏛 ${p.buildings.length} edifícios · 🗿 ${p.monuments.length} monumentos · <u>ver cartas</u></div>`:''}${full&&(p.buildings.length||p.monuments.length)?`<div class="st small">🏛 ${p.buildings.map(b=>esc(E.BLD[b].n)).concat(p.monuments.map(m=>'<b>'+esc(E.MON[m].n)+'</b>')).join(', ')}</div>`:''}</div>`; }).join(''); }
@@ -433,7 +465,7 @@ function turnHTML(){
  if(S.phase==='wealth') return `<div class="turn"><p>A escolher as peças de riqueza inicial.</p>${UI.min?'<div class="btns"><button class="primary" data-act="restoreModal">Voltar às peças</button></div>':''}</div>`;
  if(S.phase!=='play'||S.turnIdx>=S.n) return '<div class="turn"><p>…</p></div>';
  const pid=E.curPid(S), p=S.players[pid];
- if(p.bot) return `<div class="turn" style="border-color:${p.color}"><p>${tok(p)} 🤖 <b>${esc(p.name)}</b> está a jogar…</p><p class="last">${rich(S.log[S.log.length-1]||'')}</p></div>`;
+ if(p.bot) return `<div class="turn"><p>${tok(p)} 🤖 <b>${esc(p.name)}</b> está a jogar…</p><p class="last">${rich(S.log[S.log.length-1]||'')}</p></div>`;
  let msg='', btns='';
  if(E.canBeg(S,pid)&&UI.pending.length===0) btns+=`<button class="${E.forcedBeg(S,pid)?'primary':''}" data-act="beg">Mendigar milho</button>`;
  if(E.forcedBeg(S,pid)) msg='Não tens milho para colocar nenhum trabalhador: tens de mendigar.';
@@ -444,7 +476,7 @@ function turnHTML(){
  else { const own=E.ownOnGears(S,pid), av=E.availWorkers(S,pid);
   msg=own&&av?'Toca no centro verde de uma roda para <b>colocar</b>, ou num trabalhador teu a piscar para o <b>recolher</b>.':own?'Sem trabalhadores livres: toca num trabalhador teu a piscar para o recolher.':'Toca no centro verde de uma roda para colocar trabalhadores.'; }
  if(UI.snap&&(S.turn.acted||S.turn.begged)) btns+=`<button class="ghost" data-act="restart">Recomeçar turno</button>`;
- return `<div class="turn" style="border-color:${p.color}"><p>${tok(p)} Vez de <b>${esc(p.name)}</b> · 🌽${p.corn}</p><p>${msg}</p><div class="btns">${btns}</div></div>`; }
+ return `<div class="turn"><p>${tok(p)} Vez de <b>${esc(p.name)}</b> · 🌽${p.corn}</p><p>${msg}</p><div class="btns">${btns}</div></div>`; }
 function sideHTML(){ const nf=E.nextFoodIn(S);
  return `<aside id="side"><div class="sh"><b>Dia ${S.day}/26</b> · Era ${S.age} · ${nf===0?'<b class="warn">comida nesta ronda</b>':`comida em ${nf}`}</div>
  ${turnHTML()}<div class="pls">${playersHTML(false)}</div>
