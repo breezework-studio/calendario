@@ -15,6 +15,7 @@ function tick(){
  const m=q('#modal.show');
  if(m){
   if(q('[data-act=wtile]')){ const t=qa('[data-act=wtile]'); click(t[0]); click(qa('[data-act=wtile]')[1]); click(q('[data-act=wconfirm]')); return setImmediate(tick); }
+  if(q('[data-act=firstOk]')){ click(q('[data-act=firstOk]')); return setImmediate(tick); }
   if(q('[data-act=two]')){ click(qa('[data-act=two]')[R(2)]); return setImmediate(tick); }
   if(q('[data-act=choose]')){ const o=qa('[data-act=choose]'); click(o[R(o.length)]); const ds=q('[data-act=doSel]'); if(ds&&!ds.disabled) click(ds); return setImmediate(tick); }
   if(q('.res')){ console.log('FIM:', q('.res').textContent.replace(/\s+/g,' ')); console.log('turnos humanos',humanTurns); return; }
